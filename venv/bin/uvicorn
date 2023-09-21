@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/fgarcia/Platzi/Data Engineer/FastAPI/my_movie_api/venv/bin/python3" "$0" "$@"
+'''exec' "/home/lenovo/Platzi/Data Engineer/FastAPI/my_movie_api/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re
