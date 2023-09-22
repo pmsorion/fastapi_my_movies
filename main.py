@@ -2,13 +2,16 @@ from fastapi import Depends, FastAPI, Body, HTTPException, Path, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
 from fastapi.encoders import jsonable_encoder
+
 from pydantic import BaseModel, Field
+
 from typing import Optional, List
 from config.database import Session, engine, Base
 from models.movie import Movie as MovieModel
 
 from starlette.requests import Request
 from jwt_manager import create_token, validate_token
+
 import datetime
 
 app = FastAPI()
@@ -38,7 +41,7 @@ class User(BaseModel):
 class Movie(BaseModel):
     id: Optional[int] = None
     title: str = Field(min_length=5, max_length=15)
-    overview: str = Field(min_length=15, max_length=50)
+    overview: str = Field(min_length=15, max_length=100)
     year: int = Field(le=anho_actual)
     rating: float = Field(ge=1, le=10)
     category: str = Field(min_length=5, max_length=20)
@@ -62,7 +65,7 @@ movies = [
     {
         'id': 1,
         'title': 'Avatar',
-        'overview': "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
+        'overview': "En un exuberante planeta llamado Pandora viven los Navi, seres que ...",
         'year': '2009',
         'rating': 7.8,
         'category': 'Acción'
@@ -70,7 +73,7 @@ movies = [
     {
         'id': 2,
         'title': 'Avatar II',
-        'overview': "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
+        'overview': "En un exuberante planeta llamado Pandora viven los Na'vi, Lo mismo que la uno pero en el agua",
         'year': '2022',
         'rating': 7.8,
         'category': 'Acción'
@@ -106,8 +109,11 @@ def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
 
 @app.get('/movies/', tags=['movies'], response_model=List[Movie])
 def get_movies_by_category(category: str = Query(min_length=5, max_length=20)) -> List[Movie]:
-    data = [ item for item in movies if item['category'] == category]
-    return JSONResponse(content=data)
+    db = Session()
+    result = db.query(MovieModel).filter(MovieModel.category == category).all()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': 'Movie not found'})
+    return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
