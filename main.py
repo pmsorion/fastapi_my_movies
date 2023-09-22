@@ -1,38 +1,32 @@
 from fastapi import Depends, FastAPI, Body, HTTPException, Path, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.security import HTTPBearer
 from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field
 
+from starlette.requests import Request
+from jwt_manager import create_token, validate_token
+
 from typing import Optional, List
 from config.database import Session, engine, Base
 from models.movie import Movie as MovieModel
+from middlewares.error_handler import ErrorHandler
+from middlewares.jwt_bearer import JWTBearer
 
-from starlette.requests import Request
-from jwt_manager import create_token, validate_token
+
 
 import datetime
 
 app = FastAPI()
 app.title = "Mi aplicación con FastAPI"
-app.version = "0.0.2"
+app.version = "0.0.3"
+
+app.add_middleware(ErrorHandler)
 
 Base.metadata.create_all(bind=engine)
 
 fecha_actual = datetime.datetime.now()
 anho_actual = fecha_actual.year
-
-class JWTBearer(HTTPBearer):
-    async def __call__(self, request: Request):
-        auth = await super().__call__(request)
-        data = validate_token(auth.credentials)
-        if data['email'] != "admin@gmail.com":
-            raise HTTPException(
-                status_code=403,
-                detail="No autorizado",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
 
 class User(BaseModel):
     email: str
