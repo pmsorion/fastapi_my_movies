@@ -3,6 +3,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from config.database import Session, engine, Base
+from models.movie import Movie as MovieModel
 
 from starlette.requests import Request
 from jwt_manager import create_token, validate_token
@@ -10,7 +12,9 @@ import datetime
 
 app = FastAPI()
 app.title = "Mi aplicación con FastAPI"
-app.version = "0.0.1"
+app.version = "0.0.2"
+
+Base.metadata.create_all(bind=engine)
 
 fecha_actual = datetime.datetime.now()
 anho_actual = fecha_actual.year
@@ -103,6 +107,7 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=20)) -
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
+    db = Session()
     movies.append(movie)
     return JSONResponse(status_code=201, content={"message": "Se registro la pelicula"})
 
