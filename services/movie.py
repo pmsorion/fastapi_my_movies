@@ -8,3 +8,7 @@ class MovieService():
     def get_movies(self):
         result = self.db.query(MovieModel).all()
         return result
+
+    def get_movie(self, id):
+        result = self.db.query(MovieModel).filter(MovieModel.id == id).first()
+        return result
