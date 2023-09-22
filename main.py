@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI, Body, HTTPException, Path, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from config.database import Session, engine, Base
@@ -89,7 +90,9 @@ def login(user: User):
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200, dependencies=[Depends(JWTBearer())])
 def get_movies() -> List[Movie]:
-    return JSONResponse(status_code=200, content=movies)
+    db = Session()
+    result = db.query(MovieModel).all()
+    return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie, status_code=200)
