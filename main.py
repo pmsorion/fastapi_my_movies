@@ -108,7 +108,9 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=20)) -
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
     db = Session()
-    movies.append(movie)
+    new_movie = MovieModel(**movie.model_dump())
+    db.add(new_movie)
+    db.commit()
     return JSONResponse(status_code=201, content={"message": "Se registro la pelicula"})
 
 @app.put('/movies/{id}', tags=['movies'], response_model=dict, status_code=200)
